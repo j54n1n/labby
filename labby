@@ -1,9 +1,18 @@
 #!/bin/bash
-cd ~/Documents/JeeLabs/Supplies
+DIR_SUPPLIES="$(dirname "$0")/supplies"
+EXT_SUPPLIES="box"
+
+osOpen() {
+  if [ "${OS+$OS}" == "Windows_NT" ]; then
+    start $1
+  else
+    open $1
+  fi
+}
 
 usage() {
 cat <<'EOF'
-JeeLabs Lab Supplies
+Lab Supply Tracker
 Usage:
   labby <text> - find the specified search text (case insensitive)
   labby w <id> - open web page for specified product id
@@ -20,7 +29,7 @@ openPage() {
     # use DigiKey if there is no supplier prefix
     *)    s="http://www.digikey.nl/product-search/en?keywords=$1" ;;
   esac
-  open $s  # opens a web browser window on Mac OSX, since $s is a URL
+  osOpen $s  # opens a web browser window, since $s is a URL
 }
 
 addItem() {
@@ -28,8 +37,8 @@ addItem() {
     "") echo "Usage: labby a <box> <supplier-partid> ?<optional-notes>?"
         return ;;
   esac
-  if [ ! -f data/$1 ]; then
-    echo "'$1' is not an existing box, you need to create it first as 'data/$1'"
+  if [ ! -f "$DIR_SUPPLIES/$1.$EXT_SUPPLIES" ]; then
+    echo "'$1' is not an existing box, you need to create it first as '$DIR_SUPPLIES/$1.$EXT_SUPPLIES'"
     return
   fi
   case "$2" in
@@ -44,5 +53,5 @@ case "$1" in
   "") usage ;;
   w)  openPage $2 ;;
   a)  addItem $2 $3 ;;
-  *)  cd ./data; grep -i "$*" * | sed -e "s/	/  /g" -e "s/:/	/" ;;
+  *)  cd "$DIR_SUPPLIES"; grep -i --exclude=*.txt "$*" * | sed -e "s/	/  /g" -e "s/.$EXT_SUPPLIES:/	/" ;;
 esac

@@ -1,0 +1,1 @@
+Create 'boxes' with the file extension .box and content like: DK-1N5239BFSCT-ND  DIODE ZENER 9.1V 500MW DO-35
