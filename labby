@@ -1,14 +1,10 @@
 #!/bin/bash
+# Defaults
 DIR_SUPPLIES="$(dirname "$0")/supplies"
 EXT_SUPPLIES="box"
+LINK_TLD="com"
 
-osOpen() {
-  if [ "${OS+$OS}" == "Windows_NT" ]; then
-    start $1
-  else
-    open $1
-  fi
-}
+source "./labby.conf"
 
 usage() {
 cat <<'EOF'
@@ -20,16 +16,49 @@ Usage:
 EOF
 }
 
+getDigikeyLink() {
+  echo "http://www.digikey.${LINK_TLD}/product-search/en?keywords=${1#DK-}"
+}
+getEbayItemLink() {
+  echo "http://www.ebay.${LINK_TLD}/itm/${1#EB-}"
+}
+getFarnellLink() {
+  if [ "${LINK_TLD}" == "com" ]; then
+    echo "http://farnell.com/jsp/search/productdetail.jsp?SKU=${1#FL-}"
+  elif [ "${LINK_TLD}" == "co.uk" ]; then
+    echo "http://uk.farnell.com/jsp/search/productdetail.jsp?SKU=${1#FL-}"
+  else
+    echo "http://${LINK_TLD}.farnell.com/jsp/search/productdetail.jsp?SKU=${1#FL-}"
+  fi
+}
+getMouserLink() {
+  if [ "${LINK_TLD}" == "com" ]; then
+    echo "http://mouser.com/ProductDetail/${1#MR-}"
+  elif [ "${LINK_TLD}" == "co.uk" ]; then
+    echo "http://uk.mouser.com/ProductDetail/${1#MR-}"
+  else
+    echo "http://${LINK_TLD}.mouser.com/ProductDetail/${1#MR-}"
+  fi
+}
+
 openPage() {
   case "$1" in
-    DK-*) s="http://www.digikey.nl/product-search/en?keywords=${1#DK-}" ;;
-    EB-*) s="http://www.ebay.com/itm/$1" ;;
-    FL-*) s="http://nl.farnell.com/jsp/search/productdetail.jsp?SKU=${1#FL-}" ;;
-    MR-*) s="http://nl.mouser.com/ProductDetail/${1#MR-}" ;;
+    DK-*) s=$(getDigikeyLink ${1}) ;;
+    EB-*) s=$(getEbayItemLink ${1}) ;;
+    FL-*) s=$(getFarnellLink ${1}) ;;
+    MR-*) s=$(getMouserLink ${1}) ;;
     # use DigiKey if there is no supplier prefix
-    *)    s="http://www.digikey.nl/product-search/en?keywords=$1" ;;
+    *)    s=$(getDigikeyLink ${1}) ;;
   esac
   osOpen $s  # opens a web browser window, since $s is a URL
+}
+
+osOpen() {
+  if [ "${OS+$OS}" == "Windows_NT" ]; then
+    start $1
+  else
+    open $1
+  fi
 }
 
 addItem() {

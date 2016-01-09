@@ -1,0 +1,9 @@
+# Lab Supply Tracker Configuration
+
+# Change Link TLD to your preferred national site.
+LINK_TLD="com"
+#LINK_TLD="co.uk"
+#LINK_TLD="nl"
+#LINK_TLD="it"
+#LINK_TLD="at"
+#LINK_TLD="de"
