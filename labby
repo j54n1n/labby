@@ -10,12 +10,12 @@ usage() {
 cat <<EOF
 Lab Supply Tracker
 Usage:
-  $0 <text> - find the specified search text (case insensitive)
-  $0 w <id> - open web page for specified product id
-  $0 a <box> - add new supply box
-  $0 a <box> <id> - add/update information about an item in the box
-  $0 d <box> - delete a supply box
-  $0 d <box> <id> - delete an item in the box
+  $(basename "$0") <text> - find the specified search text (case insensitive)
+  $(basename "$0") w <id> - open web page for specified product id
+  $(basename "$0") a <box> - add new supply box
+  $(basename "$0") a <box> <id> - add/update information about an item in the box
+  $(basename "$0") d <box> - delete a supply box
+  $(basename "$0") d <box> <id> - delete an item in the box
 EOF
 }
 
@@ -77,7 +77,7 @@ addItem() {
   #local PART_DETAILS=
   local EXISTING_ITEM=
   case "$1" in
-    "") echo "Usage: $0 a <box> <supplier-partid>"
+    "") echo "Usage: $(basename "$0") a <box> <supplier-partid>"
         return ;;
   esac
   BOX_NO="$1"
