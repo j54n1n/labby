@@ -10,9 +10,12 @@ usage() {
 cat <<'EOF'
 Lab Supply Tracker
 Usage:
-  labby <text> - find the specified search text (case insensitive)
-  labby w <id> - open web page for specified product id
-  labby a <box> <id> - add information about an item to the specified box
+  $0 <text> - find the specified search text (case insensitive)
+  $0 w <id> - open web page for specified product id
+  $0 a <box> - add new supply box
+  $0 a <box> <id> - add/update information about an item in the box
+  $0 d <box> - delete a supply box
+  $0 d <box> <id> - delete an item in the box
 EOF
 }
 
@@ -61,26 +64,106 @@ osOpen() {
   fi
 }
 
+findItem() {
+  local BOX_NO="$1"
+  local PART_NO="$2"
+  cd "$DIR_SUPPLIES"; grep -i --include="$BOX_NO.$EXT_SUPPLIES" "\<$PART_NO\>" * | sed -e "s/	/  /g" -e "s/.$EXT_SUPPLIES:/	/"
+}
+
 addItem() {
+  local BOX_NO=
+  local PART_NO=
+  #local PART_CATEGORIES=
+  #local PART_DETAILS=
+  local EXISTING_ITEM=
   case "$1" in
     "") echo "Usage: labby a <box> <supplier-partid> ?<optional-notes>?"
         return ;;
   esac
-  if [ ! -f "$DIR_SUPPLIES/$1.$EXT_SUPPLIES" ]; then
-    echo "'$1' is not an existing box, you need to create it first as '$DIR_SUPPLIES/$1.$EXT_SUPPLIES'"
+  BOX_NO="$1"
+  if [ ! -f "$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES" ]; then
+    echo -n "'$BOX_NO' is not an existing box. Do you want to create a new box at '$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES'? (Press Ctrl+C to cancel)"
+    read -s
+    touch "$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES"
     return
   fi
   case "$2" in
-    DK-*) ;;
-    *) echo "Please specify a supplier and part id, e.g. 'DK-1N5239BFSCT-ND'"
+    DK-*) ;&
+    EB-*) ;&
+    FL-*) ;&
+    MR-*) PART_NO="$2" ;;
+    *) echo "Please specify a supplier and part id, e.g. 'DK-1N5239BFSCT-ND'."
        return ;;
   esac
-  echo "whoops, this feature is not working yet..."
+  EXISTING_ITEM=`findItem $BOX_NO $PART_NO`
+  case "$EXISTING_ITEM" in
+    "") createItem $BOX_NO $PART_NO confirm ;;
+    *)  updateItem $BOX_NO $PART_NO ;;
+  esac
+}
+
+createItem() {
+  local BOX_NO="$1"
+  local PART_NO="$2"
+  local CONFIRM="$3"
+  local PART_CATEGORIES=
+  local PART_DETAILS=
+  if [ ! -z "$CONFIRM" ] ; then
+    echo "Creating item '$PART_NO' in box '$BOX_NO'."
+  fi
+  echo -n "Enter <type> <subtype> categories, e.g. 'DIODE ZENER': "
+  read PART_CATEGORIES
+  echo -n "Enter any additional information about the part: "
+  read PART_DETAILS
+  echo "$PART_NO  $PART_CATEGORIES $PART_DETAILS" >> "$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES"
+  echo "Inserted item '`findItem $BOX_NO $PART_NO`'."
+}
+
+deleteItem() {
+  local BOX_NO="$1"
+  local PART_NO="$2"
+  local CONFIRM="$3"
+  case "$CONFIRM" in
+    "") sed -i "/\<$PART_NO\>/d" "$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES" ;;
+    *)  if [ -z "`findItem $BOX_NO $PART_NO`" ] ; then
+          echo "Item '$PART_NO' not found in box '$BOX_NO'!"
+        else 
+          echo -n "Delete part '$PART_NO in box '$BOX_NO'? (Press Ctrl+C to cancel)"
+          read
+          sed -i "/\<$PART_NO\>/Id" "$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES"
+          echo "Item deleted."
+        fi ;;
+  esac
+}
+
+deleteBox() {
+  local BOX_NO="$1"
+  local CONFIRM="$2"
+  case "$CONFIRM" in
+    "") rm -f "$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES" ;;
+    *)  if [ ! -f "$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES" ] ; then
+          echo "Supply box '$BOX_NO' not found!"
+        else
+          echo "Delete box '$BOX_NO'? (Press Ctrl+C to cancel)"
+          read
+          rm -f "$DIR_SUPPLIES/$BOX_NO.$EXT_SUPPLIES"
+          echo "Supply box deleted."
+        fi ;;
+  esac
+}
+
+updateItem() {
+  local BOX_NO="$1"
+  local PART_NO="$2"
+  echo "Found item to update '`findItem $BOX_NO $PART_NO`'."
+  deleteItem $BOX_NO $PART_NO
+  createItem $BOX_NO $PART_NO
 }
 
 case "$1" in
   "") usage ;;
   w)  openPage $2 ;;
   a)  addItem $2 $3 ;;
+  d)  [[ $# -eq 2 ]] && deleteBox $2 confirm; [[ $# -eq 3 ]] && deleteItem $2 $3 confirm ;;
   *)  cd "$DIR_SUPPLIES"; grep -i --exclude=*.txt "$*" * | sed -e "s/	/  /g" -e "s/.$EXT_SUPPLIES:/	/" ;;
 esac
