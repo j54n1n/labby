@@ -4,7 +4,7 @@ DIR_SUPPLIES="$(dirname "$0")/supplies"
 EXT_SUPPLIES="box"
 LINK_TLD="com"
 
-source "./labby.conf"
+source "$(dirname "$0")/labby.conf"
 
 usage() {
 cat <<EOF
