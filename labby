@@ -29,9 +29,9 @@ getFarnellLink() {
   if [ "${LINK_TLD}" == "com" ]; then
     echo "http://farnell.com/jsp/search/productdetail.jsp?SKU=${1#FL-}"
   elif [ "${LINK_TLD}" == "co.uk" ]; then
-    echo "http://uk.farnell.com/jsp/search/productdetail.jsp?SKU=${1#FL-}"
+    echo "http://uk.farnell.com/search?st=${1#FL-}"
   else
-    echo "http://${LINK_TLD}.farnell.com/jsp/search/productdetail.jsp?SKU=${1#FL-}"
+    echo "http://${LINK_TLD}.farnell.com/search?st=${1#FL-}"
   fi
 }
 getMouserLink() {
