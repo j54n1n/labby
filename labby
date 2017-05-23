@@ -7,7 +7,7 @@ LINK_TLD="com"
 source "./labby.conf"
 
 usage() {
-cat <<'EOF'
+cat <<EOF
 Lab Supply Tracker
 Usage:
   $0 <text> - find the specified search text (case insensitive)
@@ -77,7 +77,7 @@ addItem() {
   #local PART_DETAILS=
   local EXISTING_ITEM=
   case "$1" in
-    "") echo "Usage: labby a <box> <supplier-partid> ?<optional-notes>?"
+    "") echo "Usage: $0 a <box> <supplier-partid>"
         return ;;
   esac
   BOX_NO="$1"
